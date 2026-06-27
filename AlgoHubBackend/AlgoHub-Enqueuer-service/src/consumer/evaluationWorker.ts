@@ -23,18 +23,47 @@ const mapEvaluationStatus = (status?: string): string => {
   return "failed";
 };
 
+type EvaluationResult = {
+  status?: string;
+};
+
+const deriveSubmissionStatus = (results?: EvaluationResult[]): string => {
+  if (!results || results.length === 0) {
+    return "failed";
+  }
+
+  const allSuccessful = results.every(
+    (result) => result?.status?.toUpperCase() === "SUCCESS"
+  );
+
+  if (allSuccessful) {
+    return "completed";
+  }
+
+  const firstFailedResult = results.find(
+    (result) => result?.status?.toUpperCase() !== "SUCCESS"
+  );
+
+  return mapEvaluationStatus(firstFailedResult?.status);
+};
+
 function evaluationWorker(queueName: string) {
   new Worker(
     queueName,
     async (job: Job) => {
       
       if (job.name === "EvaluationJob") {
+        console.log(`Received job ${job.id} with name ${job.name}`);
         console.log(`Processing job ${job.id} with data:`, job.data);
         console.log(`job.data.evaluationResult:`, job.data.evaluationResult);
         if (job.data?.submissionId) {
-          const status = mapEvaluationStatus(job.data?.evaluationResult?.status);
+          const status = deriveSubmissionStatus(job.data?.evaluationResult?.results);
+          console.log(`Mapped evaluation status: ${status}`);
           await submissionService.updateSubmissionStatus(job.data.submissionId, status);
         }
+        console.log(`Updated submission status for job ${job.id} to ${deriveSubmissionStatus(job.data?.evaluationResult?.results)}`);
+
+        console.log(`Sending response to socket service for job ${job.id} with data:`, job.data);
         const response = await axios.post(
           `${process.env.SOCKET_SERVICE_URL}/senddata`,
           {
