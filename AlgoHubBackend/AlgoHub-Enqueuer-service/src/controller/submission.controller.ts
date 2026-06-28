@@ -3,7 +3,7 @@ import { createSubmissionZodSchema } from '../dtos/submissionDTO.js';
 import type { CreateSubmissionDto } from '../dtos/submissionDTO.js';
 
 
-const pingCheck = async (request: FastifyRequest, reply: FastifyReply) => {
+const pingCheck = async (_request: FastifyRequest, reply: FastifyReply) => {
   const result = await reply.server.submissionService.pingCheck();
   return reply.send(result);
 }

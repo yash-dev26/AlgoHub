@@ -37,7 +37,6 @@ module.exports = [
       "comma-dangle": ["warn", "always-multiline"],
 
       // 🔹 Prettier integration
-      "prettier/prettier": "error",
 
       "prettier/prettier": ["error", { "endOfLine": "lf" }]
     }

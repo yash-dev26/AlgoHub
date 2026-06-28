@@ -1,7 +1,7 @@
 import BaseError from "../errors/base.error.js";
 import { StatusCodes } from "http-status-codes";
 
-function errorHandler(error: any, request: any, reply: any) {
+function errorHandler(error: any, _request: any, reply: any) {
     if (error instanceof BaseError) {
         reply.status(error.statusCode).send({
             success: false,

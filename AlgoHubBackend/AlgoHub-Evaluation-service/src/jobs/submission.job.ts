@@ -57,7 +57,9 @@ export default class SubmissionJob implements IJob {
         });
         console.log('All test cases passed');
       } else {
-        const failedResults = evaluationResult.results.filter((result) => result.status !== 'SUCCESS');
+        const failedResults = evaluationResult.results.filter(
+          (result) => result.status !== 'SUCCESS',
+        );
         logger.error(
           `Job ${job.id} completed with failures. Failed test cases: ${JSON.stringify(failedResults)}`,
           {
