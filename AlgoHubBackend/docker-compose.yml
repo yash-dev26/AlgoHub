@@ -1,0 +1,70 @@
+networks:
+  microservices-network:
+    driver: bridge
+
+services:
+
+  algohub-redis:
+    image: redis:latest
+    container_name: algohub-redis
+    restart: always
+    networks:
+      - microservices-network
+    ports:
+      - "6379:6379"
+  algohub-problem-service:
+    build:
+      context: ./AlgoHub-Problem-service
+    container_name: algohub-problem-service
+    restart: always
+    networks:
+      - microservices-network
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./AlgoHub-Problem-service/.env
+  algohub-enqueuer-service:
+    build:
+      context: ./AlgoHub-Enqueuer-service
+    container_name: algohub-enqueuer-service
+    restart: always
+    networks:
+      - microservices-network
+    depends_on:
+      - algohub-redis
+    ports:
+      - "3001:3000"
+    env_file:
+      - ./AlgoHub-Enqueuer-service/.env
+
+  algohub-websocket-service:
+    build:
+      context: ./AlgoHub-WebSocket-service
+    container_name: algohub-websocket-service
+    restart: always
+    networks:
+      - microservices-network
+    depends_on:
+      - algohub-enqueuer-service
+    ports:
+      - "3003:3003"
+    env_file:
+      - ./AlgoHub-WebSocket-service/.env
+
+  algohub-evaluator-service:
+    build:
+      context: ./AlgoHub-Evaluation-service
+    container_name: algohub-evaluator-service
+    restart: always
+    networks:
+      - microservices-network
+    depends_on:
+      - algohub-redis
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./AlgoHub-Evaluation-service/.env
+
+  

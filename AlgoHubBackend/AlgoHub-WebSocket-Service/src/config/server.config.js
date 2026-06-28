@@ -4,5 +4,6 @@
  module.exports = {
     PORT: process.env.PORT,
     FRONTEND_URL: process.env.FRONTEND_URL,
-    ENQUEUE_SERVICE_URL: process.env.ENQUEUE_SERVICE_URL
+    ENQUEUE_SERVICE_URL: process.env.ENQUEUE_SERVICE_URL,
+    REDIS_HOST: process.env.REDIS_HOST
  }

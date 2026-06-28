@@ -11,7 +11,7 @@ const httpServer = createServer(app);
 
 app.use(bodyParser.json());
 
-const redisClient = new redis();
+const redisClient = new redis(process.env.REDIS_HOST);
 const io = new Server(httpServer, { 
   cors: {
     origin: [FRONTEND_URL, ENQUEUE_SERVICE_URL],
