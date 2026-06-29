@@ -12,6 +12,11 @@ services:
       - microservices-network
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   algohub-problem-service:
     build:
       context: ./AlgoHub-Problem-service
@@ -31,7 +36,8 @@ services:
     networks:
       - microservices-network
     depends_on:
-      - algohub-redis
+      algohub-redis:
+        condition: service_healthy
     ports:
       - "3001:3000"
     env_file:
