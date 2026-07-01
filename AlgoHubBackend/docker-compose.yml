@@ -19,7 +19,7 @@ services:
       retries: 5
   algohub-problem-service:
     build:
-      context: ./AlgoHub-Problem-service
+      context: ./AlgoHub-Problem-Service
     container_name: algohub-problem-service
     restart: always
     networks:
@@ -27,7 +27,7 @@ services:
     ports:
       - "3002:3002"
     env_file:
-      - ./AlgoHub-Problem-service/.env
+      - ./AlgoHub-Problem-Service/.env
   algohub-enqueuer-service:
     build:
       context: ./AlgoHub-Enqueuer-service
@@ -45,7 +45,7 @@ services:
 
   algohub-websocket-service:
     build:
-      context: ./AlgoHub-WebSocket-service
+      context: ./AlgoHub-WebSocket-Service
     container_name: algohub-websocket-service
     restart: always
     networks:
@@ -55,7 +55,7 @@ services:
     ports:
       - "3003:3003"
     env_file:
-      - ./AlgoHub-WebSocket-service/.env
+      - ./AlgoHub-WebSocket-Service/.env
 
   algohub-evaluator-service:
     build:

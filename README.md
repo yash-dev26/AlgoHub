@@ -47,7 +47,50 @@ AlgoHub/
 ---
 
 # 🏗️ Architecture Diagram
-<img width="1648" height="1110" alt="png l" src="https://github.com/user-attachments/assets/f270033d-7d5d-4dd7-8fb6-a66d7bbc7067" />
+
+```mermaid
+flowchart TD
+    Client([Client])
+
+    subgraph Enqueuer["AlgoHub-Enqueuer-service :3000"]
+        EQ[Submission API]
+    end
+
+    subgraph ProblemSvc["AlgoHub-Problem-Service :3002"]
+        PS[Problem API]
+    end
+
+    subgraph Evaluator["AlgoHub-Evaluation-service :8080"]
+        EV[Evaluation Worker]
+        DOCK[(Docker Containers<br/>Python / Java / C++)]
+    end
+
+    subgraph WS["AlgoHub-WebSocket-Service :3003"]
+        WSS[Socket.IO Server]
+    end
+
+    Redis[(Redis<br/>algohub-redis :6379)]
+    Mongo[(MongoDB)]
+
+    Client -->|1: POST submission| EQ
+    EQ -->|2: sync REST call| PS
+    PS -->|3: query| Mongo
+    PS -->|4: problem details| EQ
+    EQ -->|5: create submission record| Mongo
+    EQ -->|6: push job| Redis
+    EQ -->|7: 201 response| Client
+
+    Redis -->|8: consume job| EV
+    EV -->|spawn & run| DOCK
+    EV -->|9: publish result| Redis
+
+    Redis -->|10: consume result| EQ
+    EQ -->|11: update record| Mongo
+    EQ -->|12: notify| WSS
+    WSS -->|13: emit status| Client
+```
+
+---
 
 ---
 
@@ -55,91 +98,48 @@ AlgoHub/
 
 ***1. The client sends a submission request to the Submission Service.***
 
-<br>
+***2. The Submission Service makes a synchronous call to the Problem Service to retrieve problem details.***
 
-  <img width="1870" height="913" alt="image" src="https://github.com/user-attachments/assets/51477b81-fed3-4c1a-9e35-dcfe4c85030a" />
-    
-<br><br>
+***3. The Problem Service queries the database to fetch the required problem data.***
 
-***2. The Submission Service makes a synchronous call to the Problem Admin Service to retrieve problem details.***  
+***4. The Problem Service returns the problem details to the Submission Service.***
 
-<br>
+***5. The Submission Service creates a new submission record in the database.***
 
-  <img width="1493" height="951" alt="image" src="https://github.com/user-attachments/assets/a4f6c36c-cbd0-402d-933b-6bfd83a90bda" />
-  
-<br><br>
+***6. The Submission Service pushes the submission payload (with the updated stub) into the Submission Redis Queue.***
 
-***3. The Problem Admin Service queries MongoDB to fetch the required problem data.***  
+***7. The Submission Service responds to the client, confirming the submission was successfully created.***
 
-<br>
+***8. The Evaluator Service consumes the submission message from the Submission Redis Queue and executes the code inside an isolated Docker container.***
 
-<img width="1909" height="894" alt="image" src="https://github.com/user-attachments/assets/abbab9ac-b550-4f45-9a74-8a49dee97664" />
+***9. After evaluation and test case verification, the Evaluator Service publishes the result to the Evaluation Redis Queue.***
 
-<br><br>
+***10. The Submission Service consumes the evaluation result from the Evaluation Redis Queue.***
 
-***4. The Problem Admin Service returns the problem details to the Submission Service.***  
+***11. The Submission Service updates the submission record in the database with the evaluation result.***
 
-<br>
-  <img width="1032" height="268" alt="image" src="https://github.com/user-attachments/assets/e3261712-4dc1-4983-9831-d4e907ee6020" />
-  
-  <br><br>
-  
+***12. The Submission Service notifies the WebSocket Service of the updated submission status.***
 
-***5. The Submission Service creates a new submission record in the database.***  
+***13. The WebSocket Service pushes the final result to the client over the active socket connection.***
 
-<br>
-<img width="1916" height="914" alt="image" src="https://github.com/user-attachments/assets/0a307102-62a3-430c-8c94-dfbb169eff1f" />
+---
 
-<br><br>
+---
 
-***6. The Submission Service pushes the submission payload (with updated stub) into the Redis submission queue.***  
+# ⚙️ Project Setup & Backend Details
+## Backend
+Detailed setup instructions, environment variables, and service-specific configuration for each backend microservice are documented separately.
 
-<br>
+👉 **[View full backend setup guide](./AlgoHubBackend/README.md)**
+## Frontend
 
-<img width="1136" height="720" alt="image" src="https://github.com/user-attachments/assets/3a1fdf77-f2a8-45ea-a906-d0f9cadfd873" />
+> Use the provided `.env.example` file — copy it to `.env` and fill in the required values
 
-<br><br>
-
-
-***7. The Submission Service responds to the client confirming that the submission was successfully created.***  
-
-
-***8. The Evaluator Service consumes the submission message from the queue and executes the code.***  
-
-<br>
-
-<img width="1166" height="737" alt="image" src="https://github.com/user-attachments/assets/e8130bf2-0834-4deb-87ec-bd23f5ec077e" />
-
-<br>
-<br>
-
-<img width="1546" height="691" alt="image" src="https://github.com/user-attachments/assets/b1145c28-d116-4bbb-9f7a-13a3d7fb4579" />
-
-<br><br>
-
-***9. After evaluation and test case verification, the Evaluator Service publishes the result status to the evaluation queue.***  
-
-<br>
-<img width="1559" height="688" alt="image" src="https://github.com/user-attachments/assets/57f5acc0-ba69-43e0-9e85-48a40a493d20" />
-<br><br>
-
-***10. The Submission Service consumes the evaluation result from the evaluation queue.***  
-
-
-***11. The Submission Service updates the submission record in the database with the evaluation result.***  
-
-
-***12. The Submission Service notifies the WebSocket Service about the updated submission status.***  
-
-<br>
-<img width="1494" height="510" alt="image" src="https://github.com/user-attachments/assets/3edab114-6804-4ad7-8088-5d46f908410c" />
-<br><br>
-
-***13. The WebSocket Service pushes the execution result/status update to the client via the active socket connection.***  
-
-<br>
-<img width="1508" height="480" alt="image" src="https://github.com/user-attachments/assets/f75d1a55-707e-47a7-8053-0b5d54cbc5b0" />
-
+```bash
+cd AlgoHubFrontend
+npm install
+npm run dev
+```
 
 ---
 ## 🧠 Project Focus
