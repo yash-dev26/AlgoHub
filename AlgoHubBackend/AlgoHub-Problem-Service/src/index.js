@@ -12,9 +12,9 @@ const logger = require('./config/logger.config');
 
 
 const app = express();
-
+console.log("FRONTEND_URL =", FRONTEND_URL);
 app.use(cors({
-  origin: [FRONTEND_URL],
+  origin: FRONTEND_URL,
   credentials: true
 }));
 

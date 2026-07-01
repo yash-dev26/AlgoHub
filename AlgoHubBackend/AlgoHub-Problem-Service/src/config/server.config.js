@@ -4,5 +4,6 @@
  module.exports = {
     PORT: process.env.PORT,
     ATLAS_DB_URL: process.env.ATLAS_URI,
-    NODE_ENV : process.env.NODE_ENV || 'development'
+    NODE_ENV : process.env.NODE_ENV || 'development',
+    FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000'
  }

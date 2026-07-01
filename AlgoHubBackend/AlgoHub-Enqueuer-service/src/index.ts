@@ -8,17 +8,27 @@ import evaluationWorker from './consumer/evaluationWorker.js';
 
 const server = fastify({logger: true})
 
-server
-  .withTypeProvider<ZodTypeProvider>()
-  .register(app)
-  .setErrorHandler(errorHandler)
-  .listen({port: Number(SERVER_CONFIG.PORT), }, async(err) => {
-    if(err){
-      console.error(err);
-      process.exit(1);
-    }
+const start = async () => {
+  try {
+    await server
+      .withTypeProvider<ZodTypeProvider>()
+      .register(app);
+
+    server.setErrorHandler(errorHandler);
+
+    await server.listen({
+      port: Number(SERVER_CONFIG.PORT),
+      host: "0.0.0.0",
+    });
+
     await connectToDatabase();
-    evaluationWorker('EvaluationQueue');
-    console.info(`Server listening on port : ${SERVER_CONFIG.PORT}`);
-    
-  });
+    evaluationWorker("EvaluationQueue");
+
+    console.info(`Server listening on port ${SERVER_CONFIG.PORT}`);
+  } catch (err) {
+    server.log.error(err);
+    process.exit(1);
+  }
+};
+
+start();
